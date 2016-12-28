@@ -1,0 +1,6 @@
+hash: ba7efc8a679ca43ef0d7315b1da8ad68ac2095b8e2bcf57d9bbc294a9c24e0b5
+updated: 2016-12-28T07:11:15.586093375-05:00
+imports:
+- name: github.com/spf13/viper
+  version: 5ed0fc31f7f453625df314d8e66b9791e8d13003
+testImports: []
