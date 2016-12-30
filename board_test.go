@@ -7,7 +7,7 @@ import (
 )
 
 func TestShipPlacementInvalidLocationRange(t *testing.T) {
-	board := Board{Width: 4}
+	board := NewBoard(4)
 	cruiser := NewCruiser()
 	r, _ := NewLocationRange("A4", "A1")
 	err := board.Place(cruiser, r)
@@ -18,7 +18,7 @@ func TestShipPlacementInvalidLocationRange(t *testing.T) {
 }
 
 func TestShipPlacementValidLocationRange(t *testing.T) {
-	board := Board{Width: 4}
+	board := NewBoard(4)
 	cruiser := NewCruiser()
 	r, _ := NewLocationRange("A1", "A3")
 	err := board.Place(cruiser, r)
@@ -29,7 +29,7 @@ func TestShipPlacementValidLocationRange(t *testing.T) {
 }
 
 func TestShipPlacementOverlappingBoats(t *testing.T) {
-	board := Board{Width: 4}
+	board := NewBoard(4)
 	cruiser := NewCruiser()
 	r, _ := NewLocationRange("A1", "A3")
 	err := board.Place(cruiser, r)
@@ -48,7 +48,7 @@ func TestShipPlacementOverlappingBoats(t *testing.T) {
 }
 
 func TestShipPlacementNonOverlappingBoats(t *testing.T) {
-	board := Board{Width: 4}
+	board := NewBoard(4)
 	cruiser := NewCruiser()
 	r, _ := NewLocationRange("A1", "A3")
 	err := board.Place(cruiser, r)
@@ -74,19 +74,19 @@ func TestShipPlacementNonOverlappingBoats(t *testing.T) {
 
 func TestBoardDisplay(t *testing.T) {
 	testCases := []struct {
-		board Board
-		want string
+		board *Board
+		want  string
 	}{
-		{Board{Width: 4},
-`===========
+		{NewBoard(4),
+			`===========
 . 1 2 3 4
 A
 B
 C
 D
 ===========`},
-		{Board{Width: 8},
-`==================
+		{NewBoard(8),
+			`==================
 . 1 2 3 4 5 6 7 8
 A
 B
@@ -97,8 +97,8 @@ F
 G
 H
 ==================`},
-		{Board{Width: 12},
-`=============================
+		{NewBoard(12),
+			`=============================
 . 1 2 3 4 5 6 7 8 9 10 11 12
 A
 B
@@ -125,7 +125,7 @@ L
 }
 
 func TestShipAttackSequence(t *testing.T) {
-	board := Board{Width: 4}
+	board := NewBoard(4)
 	cruiser := NewCruiser()
 	initialStrength := cruiser.strength
 	r, _ := NewLocationRange("A1", "A3")
@@ -142,7 +142,7 @@ func TestShipAttackSequence(t *testing.T) {
 		t.Fatal("incorrect attack result. expected " + expected + ", got: " + result)
 	}
 
-	if cruiser.strength != initialStrength - 1 {
+	if cruiser.strength != initialStrength-1 {
 		t.Fatal("incorrect attack result. cruiser strength to be at " + strconv.Itoa(initialStrength-1) + ", got: " + strconv.Itoa(cruiser.strength))
 	}
 
@@ -151,6 +151,7 @@ func TestShipAttackSequence(t *testing.T) {
 	result = board.Attack(Location("B1"))
 	expected = "Miss!"
 	if result != expected {
+		t.Log(board.Display())
 		t.Fatal("incorrect attack result. expected " + expected + ", got: " + result)
 	}
 
@@ -175,15 +176,33 @@ D
 	}
 }
 
+func TestShipAttackSequenceInvalidLocation(t *testing.T) {
+	board := NewBoard(4)
+	cruiser := NewCruiser()
+	r, _ := NewLocationRange("A1", "A3")
+	err := board.Place(cruiser, r)
+
+	if err != nil {
+		t.Fatal("unexpected placement failure, got:", err)
+	}
+
+	result := board.Attack(Location("A17"))
+
+	expected := "Invalid Location A17. Please select another location."
+	if result != expected {
+		t.Fatal("incorrect attack result. expected " + expected + ", got: " + result)
+	}
+}
+
 func TestLocationRange(t *testing.T) {
-	board := Board{Width: 4}
+	board := NewBoard(4)
 	cruiser := NewCruiser()
 
 	testCases := []struct {
-		start, end  string
-		expectedLength int
-		validity    bool
-		expectRangeError bool
+		start, end          string
+		expectedLength      int
+		validity            bool
+		expectRangeError    bool
 		expectValidityError bool
 	}{
 		{"A1", "A3", 3, true, false, false},
