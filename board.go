@@ -20,7 +20,7 @@ func (b *Board) Place(ship *Ship, r LocationRange) error {
 
 	for _, l := range r.Locations {
 		if b.IsOccupied(l) {
-			return errors.New("location " + string(l) + "is already occupied.")
+			return errors.New("location " + string(l) + " is already occupied.")
 		}
 	}
 
