@@ -6,11 +6,20 @@ import (
 	"strconv"
 	"fmt"
 	"unicode/utf8"
+	"bytes"
+)
+
+type ShotResult string
+
+const (
+	Hit ShotResult = "H"
+	Miss ShotResult = "M"
 )
 
 type Board struct {
 	Width int
 	occupants map[Location]*Ship
+	shotsByLocation map[Location]ShotResult
 }
 
 func (b *Board) Place(ship *Ship, r LocationRange) error {
@@ -38,6 +47,121 @@ func (b *Board) Place(ship *Ship, r LocationRange) error {
 func (b *Board) IsOccupied(l Location) bool {
 	_, ok := b.occupants[l]
 	return ok
+}
+
+func (b Board) String() string {
+	return fmt.Sprintf("Board{Width:%d}", b.Width)
+}
+
+func (b Board) Display() string {
+	rows := []string{}
+
+	for row := 0; row < b.Width + 3; row++ {
+		isHeaderRow := row == 0 || row == b.Width + 3 - 1
+
+		if isHeaderRow {
+			rows = append(rows, getHeader(b))
+			continue
+		}
+
+		isColumnHeaderRow := row == 1
+
+		if isColumnHeaderRow {
+			rows = append(rows, getColumnHeader(b))
+			continue
+		}
+
+		var derivedRow string
+		var buffer bytes.Buffer
+
+		for col := 0; col <= b.Width; col++ {
+			isRowHeaderColumn := col == 0
+
+			rowName := fmt.Sprintf(fmt.Sprintf("%c", 'A'+row-2))
+
+			if isRowHeaderColumn {
+				buffer.WriteString(rowName)
+			} else {
+				location := Location(fmt.Sprintf("%s%d", rowName, col))
+				result, shotTaken := b.shotsByLocation[location]
+
+				if shotTaken {
+					buffer.WriteString(string(result))
+				}
+			}
+
+			if col != b.Width {
+				buffer.WriteString(" ")
+			}
+
+			derivedRow = strings.TrimSpace(buffer.String())
+		}
+
+		if len(derivedRow) > 0 {
+			rows = append(rows, derivedRow)
+		}
+	}
+
+	return strings.Join(rows, "\n")
+}
+
+func getHeader(b Board) string {
+	var header string
+
+	switch b.Width {
+	case 4:
+		header = "==========="
+	case 8:
+		header = "=================="
+	case 12:
+		header = "============================="
+	}
+
+	return header
+}
+
+func getColumnHeader(b Board) string {
+	var buffer bytes.Buffer
+
+	for i := 0; i <= b.Width; i++ {
+		if i == 0 {
+			buffer.WriteString(".")
+		} else {
+			buffer.WriteString(strconv.Itoa(i))
+		}
+
+		if i != b.Width {
+			buffer.WriteString(" ")
+		}
+	}
+
+	return buffer.String()
+}
+
+func (b *Board) Attack(l Location) string {
+	var result string
+
+	if b.shotsByLocation == nil {
+		b.shotsByLocation = map[Location]ShotResult{}
+	}
+
+	if b.IsOccupied(l) {
+		occupant := b.occupants[l]
+		occupant.OnImpact()
+
+		if occupant.IsAfloat() {
+			result = fmt.Sprintf("Hit. %s.", occupant.Type)
+		} else {
+			result = fmt.Sprintf("Sunk %s of length %d!", occupant.Type, occupant.Length)
+		}
+
+		b.shotsByLocation[l] = Hit
+	} else {
+		result = "Miss!"
+		b.shotsByLocation[l] = Miss
+	}
+
+	return result
 }
 
 type LocationRange struct {

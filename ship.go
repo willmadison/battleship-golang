@@ -7,7 +7,11 @@ type Ship struct {
 }
 
 func (s *Ship) OnImpact() {
+	s.strength -= 1
+}
 
+func (s *Ship) IsAfloat() bool {
+	return s.strength > 0
 }
 
 func NewCruiser() *Ship {
