@@ -1,9 +1,9 @@
 package battleship
 
-import "testing"
 import (
 	"fmt"
 	"strconv"
+	"testing"
 )
 
 func TestShipPlacementInvalidLocationRange(t *testing.T) {
